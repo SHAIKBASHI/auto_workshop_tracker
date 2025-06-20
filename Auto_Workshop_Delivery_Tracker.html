@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Auto Workshop Delivery Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f4f7fa;
+}
+h1 { text-align: center; color: #333; }
+.controls, .totals, .date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin: 10px 0;
+}
+.controls input, .controls select, .date-filter input {
+  padding: 8px;
+  font-size: 14px;
+  margin: 5px;
+}
+table {
+  width: 100%; 
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+}
+th {
+  background: #007BFF;
+  color: #fff;
+}
+.remove-btn {
+  padding: 4px 10px;
+  font-size: 14px;
+  color: #fff;
+  background: #dc3545;
+  border: none;
+  border-radius: 4px;
+}
+@media (max-width: 768px) {
+  table { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<h1>🚗 Auto Workshop Delivery Tracker</h1>
+<div class="date-filter">
+  <label>Start Date: <input type="date" id="startDate"></label>
+  <label>End Date: <input type="date" id="endDate"></label>
+  <button id="filterBtn">Filter</button>
+  <button id="resetFilter">Reset</button>
+</div>
+
+<div class="controls">
+  <input type="text" id="customerName" placeholder="Customer Name">
+  <input type="text" id="itemName" placeholder="Item/Service">
+  <input type="number" id="quantity" placeholder="Quantity">
+  <input type="number" id="cost" placeholder="Cost">
+  <select id="status">
+    <option value="Pending">Pending</option>
+    <option value="Delivered">Delivered</option>
+  </select>
+  <input type="date" id="orderDate">
+  <button id="addDeliveryBtn">➕ Add Delivery</button>
+</div>
+
+<table id="deliveryTable">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Customer Name</th>
+      <th>Item</th>
+      <th>Quantity</th>
+      <th>Cost</th>
+      <th>Status</th>
+      <th>Remove</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="totals">
+  <div id="pendingTotal">Pending Total: ₹0</div>
+  <div id="deliveredTotal">Delivered Total: ₹0</div>
+  <div id="grandTotal">Grand Total: ₹0</div>
+</div>
+
+<button id="exportPDF">📄 Export PDF</button>
+<button id="exportExcel">📤 Export Excel</button>
+
+<script>
+let data = [];
+
+function addDelivery() {
+  const customer = document.getElementById("customerName").value.trim();
+  const item = document.getElementById("itemName").value.trim();
+  const quantity = +document.getElementById("quantity").value;
+  const cost = +document.getElementById("cost").value;
+  const status = document.getElementById("status").value;
+  const date = document.getElementById("orderDate").value;
+
+  if (!customer || !item || !quantity || !cost || !date) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  const entry = { date, customer, item, quantity, cost, status };
+  data.push(entry);
+  clearForm();
+  renderTable(data);
+}
+
+function clearForm() {
+  document.getElementById("customerName").value = '';
+  document.getElementById("itemName").value = '';
+  document.getElementById("quantity").value = '';
+  document.getElementById("cost").value = '';
+  document.getElementById("orderDate").value = '';
+}
+
+function renderTable(dataList) {
+  const tableBody = document.querySelector('#deliveryTable tbody');
+  tableBody.innerHTML = '';
+  dataList.forEach((d, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${d.date}</td>
+      <td>${d.customer}</td>
+      <td>${d.item}</td>
+      <td>${d.quantity}</td>
+      <td>${d.cost}</td>
+      <td>${d.status}</td>
+      <td><button class="remove-btn" data-index="${index}">X</button></td>`;
+    tableBody.appendChild(row);
+  });
+  tableBody.querySelectorAll('.remove-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      const index = e.target.getAttribute('data-index');
+      data.splice(index, 1);
+      renderTable(data);
+    });
+  });
+  updateTotals(dataList);
+}
+
+function updateTotals(dataList) {
+  let pendingTotal = 0, deliveredTotal = 0;
+  dataList.forEach(entry => {
+    if (entry.status === "Pending") pendingTotal += entry.cost;
+    else if (entry.status === "Delivered") deliveredTotal += entry.cost;
+  });
+  document.getElementById("pendingTotal").innerText = `Pending Total: ₹${pendingTotal}`;
+  document.getElementById("deliveredTotal").innerText = `Delivered Total: ₹${deliveredTotal}`;
+  document.getElementById("grandTotal").innerText = `Grand Total: ₹${pendingTotal + deliveredTotal}`;
+}
+
+function filterData() {
+  const start = new Date(document.getElementById("startDate").value);
+  const end = new Date(document.getElementById("endDate").value);
+  if (!isNaN(start) && !isNaN(end)) {
+    const filtered = data.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= start && entryDate <= end;
+    });
+    renderTable(filtered);
+  } else {
+    alert("Please select valid start and end dates.");
+  }
+}
+
+function resetFilter() {
+  renderTable(data);
+}
+
+function exportToExcel() {
+  let csvContent = "Date,Customer Name,Item,Quantity,Cost,Status\n";
+  data.forEach(entry => {
+    csvContent += `${entry.date},${entry.customer},${entry.item},${entry.quantity},${entry.cost},${entry.status}\n`;
+  });
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "auto_workshop_data.csv";
+  a.click();
+}
+
+function exportToPDF() {
+  window.print();
+}
+
+document.getElementById("addDeliveryBtn").addEventListener("click", addDelivery);
+document.getElementById("filterBtn").addEventListener("click", filterData);
+document.getElementById("resetFilter").addEventListener("click", resetFilter);
+document.getElementById("exportPDF").addEventListener("click", exportToPDF);
+document.getElementById("exportExcel").addEventListener("click", exportToExcel);
+</script>
+</body>
+</html>
