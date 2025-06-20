@@ -1,6 +1,7 @@
 🛠️ Auto Workshop Delivery Tracker
 A simple, mobile-friendly web app that replaces paper slips with digital records — built to help small auto workshops track daily jobs, pending vs delivered services, and total earnings.
 
+
 ⚡️ The Industry Problem
 Small auto workshops often struggle with:
 
@@ -11,6 +12,8 @@ Small auto workshops often struggle with:
 📅 No easy way to review jobs across specific date ranges.
 
 ⚠️ Difficulty tracking pending vs delivered services.
+
+
 
 ✅ Features
 👷 Add Jobs Quickly — Enter customer, item, quantity, cost, status (Pending/Delivered), and date.
@@ -23,6 +26,8 @@ Small auto workshops often struggle with:
 
 ♻️ Easy Reset & Print — Maintain clean, organized records.
 
+
+
 🚀 Why This Helps
 👉 Enables workshop owners to:
 
@@ -34,9 +39,13 @@ Stay organized and review performance over weeks or months.
 
 Minimize delays and focus more on service quality.
 
+
+
 💻 Demo
 Open auto_workshop_tracker.html in your browser to test it out.
 (Add jobs, filter by date range, export as PDF/Excel, and more.)
+
+
 
 🛠️ Technologies Used
 HTML5 & CSS3 for layout and design
